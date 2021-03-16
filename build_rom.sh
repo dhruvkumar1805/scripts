@@ -44,17 +44,14 @@ tg_post_msg "Build Finished..." "$CHATID"
 
 
 
-
-
-		zipdir=$(get_build_var PRODUCT_OUT)
-		zippath=$(ls "$zipdir"/*2021*.zip | tail -n -1)
+		ZIP="out/target/product/ysl/*zip"
 
 		# Upload the ROM to google drive if it's available, else upload to transfer.sh
 		if [ -x "$(command -v gdrive)" ]; then
 			echo -e "Uploading ROM to Google Drive using gdrive CLI ..."
 			# In some cases when the gdrive CLI is not set up properly, upload fails.
 			# In that case upload it to transfer.sh itself
-			if ! gdrive upload --share "$zippath"; then
+			if ! gdrive upload --share -p 1-2KH9G_xwIQ9dqkBirrWl2rd2mBON0aF $ZIP; then
 				echo -e "\nAn error occured while uploading to Google Drive."
 				echo "Uploading ROM zip to transfer.sh..."
 				echo "ROM zip uploaded succesfully: $(curl -sT "$zippath" https://transfer.sh/"$(basename "$zippath")")"
