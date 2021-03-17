@@ -1,38 +1,23 @@
 #!/bin/bash
-#script to clone trees
+# Script to clone my trees for ysl!
 
-USERNAME="" #JUST FILL UR GITHUB USERNAME
+# EDIT PROPERLY IF U USE IT
 
-# DEVICE TREE
-DEVICE_REPO="" #JUST FILL THE NAME OF THE DEVICE REPO , NO NEED OF LINK
-DEVICE_BRANCH="" #JUST FILL THE BRANCH OF DEVICE TREE REPO
-DEVICE_DIR="" #JUST ADD THE LOCATION WHERE U WANT TO CLONE THE TREE
+read -rp "Enter branch name of device tree (default 11): " DEVICE_BRANCH
+read -rp "Enter branch name of remaining trees (default 11): " BRANCH
 
-# VENDOR TREE
-VENDOR_REPO="" #JUST FILL THE NAME OF THE VENDOR REPO , NO NEED OF LINK
-VENDOR_BRANCH="" #JUST FILL THE BRANCH OF VENDOR TREE REPO
-VENDOR_DIR="" #JUST ADD THE LOCATION WHERE U WANT TO CLONE THE TREE
+GITHUB='https://github.com/DhruvChhura'
 
-# KERNEL
-KERNEL_REPO="" #JUST FILL THE NAME OF THE KERNEL REPO , NO NEED OF LINK
-KERNEL_BRANCH="" #JUST FILL THE BRANCH OF KERNEL TREE REPO
-KERNEL_DIR="" #JUST ADD THE LOCATION WHERE U WANT TO CLONE THE TREE
-
-
-## DON'T EDITT FROM HERE ##
-
-
-
-GITHUB='https://github.com/$USERNAME'
+if [ -z "$BRANCH" ]; then BRANCH="11"; fi
+if [ -z "$DEVICE_BRANCH" ]; then DEVICE_BRANCH="11"; fi
 
 echo -e "\n============== CLONING DEVICE TREE ==============\n"
-git clone -b $DEVICE_BRANCH $GITHUB/$DEVICE_REPO $DEVICE_DIR
+git clone -b $DEVICE_BRANCH $GITHUB/device_xiaomi_ysl device/xiaomi/ysl
 
 echo -e "\n============== CLONING VENDOR TREE ==============\n"
-git clone -b $VENDOR_BRANCH $GITHUB/$VENDOR_REPO $VENDOR_DIR
+git clone -b $BRANCH $GITHUB/vendor_xiaomi_ysl vendor/xiaomi
 
 echo -e "\n============== CLONING KERNEL ==============\n"
-git clone -b $KERNEL_BRANCH $GITHUB/$KERNEL_REPO $KERNEL_DIR
-
+git clone -b $BRANCH $GITHUB/kernel_xiaomi_ysl kernel_xiaomi_ysl
 
 echo -e "\n============== DONE ==============\n"
