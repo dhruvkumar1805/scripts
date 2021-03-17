@@ -1,7 +1,7 @@
 #!/bin/bash
 # Script to clone my trees for ysl!
 
-# EDIT PROPERLY IF U USE IT
+# EDIT PROPERLY IF U USE IT , EDIT CLONE LOCATION PROPERLY IF U USING FOR OTHER DEVICE!! , THIS IS FOR REDMI S2/Y2 (YSL)
 
 read -rp "Enter branch name of device tree (default 11): " DEVICE_BRANCH
 read -rp "Enter branch name of remaining trees (default 11): " BRANCH
