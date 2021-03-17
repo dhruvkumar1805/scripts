@@ -49,4 +49,5 @@ tg_post_msg "Build Finished..." "$CHATID"
 		# Upload the ROM to google drive
 			echo -e "Uploading ROM to Google Drive using gdrive CLI ..."
 	                tg_post_msg "Uploading Build....." "$CHATID"
-			gdrive upload --share -p 1-2KH9G_xwIQ9dqkBirrWl2rd2mBON0aF $ZIP
+			file=$(gdrive upload --share -p 1-2KH9G_xwIQ9dqkBirrWl2rd2mBON0aF $ZIP)
+			tg_post_msg "Build Uploaded..... : $file" "$CHATID"
