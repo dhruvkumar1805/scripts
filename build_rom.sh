@@ -8,7 +8,8 @@ red='\033[0;31m'
 green='\e[0;32m'
 
 # LUNCH
-LUNCH=""
+MAKE_TARGET="" # FILL TARGET
+LUNCH="" # FILL LUNCH COMMAND
 
 # TELEGRAM BOT
 
@@ -36,18 +37,28 @@ tg_error() {
 
 # BEGIN COMPILATION!
 . build/envsetup.sh
-echo -e "\nStarting Build ...\n"
+echo -e "$green Starting Build....... \n $white"
 tg_post_msg "Starting Build ....." "$CHATID"
 lunch $LUNCH
 mka bacon | tee logs.txt
+echo -e "$green Build Finished \n $white"
 tg_post_msg "Build Finished..." "$CHATID"
-
 
 
 		ZIP="out/target/product/ysl/*zip"
 
-		# Upload the ROM to google drive
-			echo -e "Uploading ROM to Google Drive using gdrive CLI ..."
-	                tg_post_msg "Uploading Build....." "$CHATID"
-			file=$(gdrive upload --share -p 1-2KH9G_xwIQ9dqkBirrWl2rd2mBON0aF $ZIP)
-			tg_post_msg "Build Uploaded..... : $file" "$CHATID"
+                # Upload the ROM to google drive else transfer.sh!
+                                echo -e "Uploading ROM to Google Drive using gdrive CLI ..."
+                                # In some cases when the gdrive CLI is not set up properly, upload fails.
+                                # In that case upload it to transfer.sh itself
+
+                                if ! gdrive upload --share -p -2KH9G_xwIQ9dqkBirrWl2rd2mBON0aF $ZIP ; then
+                                echo -e "\nAn error occured while uploading to Google Drive."
+                                echo "Uploading ROM zip to transfer.sh..."
+                                tg_post_msg "Build Uploaded....: $(curl -sT $ZIP https://transfer.sh/"$(basename $ZIP)")" $CHATID
+                        else
+
+                        url=$(echo $ZIP | cut -d / -f5)
+                        tg_post_msg "Build Uploaded..... https://rums.dhruv.workers.dev/Rums/$url?rootId=0AMdva1bKNVXjUk9PVA" $CHATID
+
+                        fi
