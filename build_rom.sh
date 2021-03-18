@@ -52,6 +52,8 @@ tg_post_msg "Build Finished..." "$CHATID"
                                 # In some cases when the gdrive CLI is not set up properly, upload fails.
                                 # In that case upload it to transfer.sh itself
 
+                tg_post_msg "Uploading Build....." "$CHATID"
+
                                 if ! gdrive upload --share -p -2KH9G_xwIQ9dqkBirrWl2rd2mBON0aF $ZIP ; then
                                 echo -e "\nAn error occured while uploading to Google Drive."
                                 echo "Uploading ROM zip to transfer.sh..."
