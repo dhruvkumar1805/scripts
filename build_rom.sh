@@ -60,7 +60,7 @@ tg_post_msg "Build Finished..." "$CHATID"
 
                 tg_post_msg "Uploading Build....." "$CHATID"
 
-                                if ! gdrive upload --share -p -2KH9G_xwIQ9dqkBirrWl2rd2mBON0aF $ZIP ; then
+                                if ! gdrive upload --share -p 1-2KH9G_xwIQ9dqkBirrWl2rd2mBON0aF $ZIP ; then
                                 echo -e "\nAn error occured while uploading to Google Drive."
                                 echo "Uploading ROM zip to transfer.sh..."
                                 tg_post_msg "Build Uploaded....: $(curl -sT $ZIP https://transfer.sh/"$(basename $ZIP)")" $CHATID
