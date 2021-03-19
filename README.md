@@ -1,6 +1,6 @@
 # Some Bash Scripts That I Often Use Personally.
 
-* `build_rom.sh`==> Builds ROM for any device, and uploads it to Gdrive Otherwise uploads to transfer.sh
+* `build_rom.sh`==> Builds Rom for any device, and uploads it to Gdrive Otherwise uploads to transfer.sh
 
 * `clone_trees.sh`==> Clones Device Sources.
 
