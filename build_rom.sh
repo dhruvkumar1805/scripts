@@ -44,8 +44,14 @@ mka bacon | tee logs.txt
 echo -e "$green Build Finished \n $white"
 tg_post_msg "Build Finished..." "$CHATID"
 
-
 		ZIP="out/target/product/ysl/*zip"
+
+                if [ -f "$ZIP" ]; then
+                echo -e "$green << Build completed ...... >> \n $white"
+        else
+                echo -e "$red << Failed To Build Some Targets , Build Failed .__. EXITING.... >>$white"
+
+        fi
 
                 # Upload the ROM to google drive else transfer.sh!
                                 echo -e "Uploading ROM to Google Drive using gdrive CLI ..."
