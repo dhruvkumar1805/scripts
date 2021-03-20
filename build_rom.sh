@@ -38,11 +38,11 @@ tg_error() {
 # BEGIN COMPILATION!
 . build/envsetup.sh
 echo -e "$green Starting Build....... \n $white"
-tg_post_msg "Starting Build ....." "$CHATID"
+tg_post_msg " Build Triggered ......" "$CHATID"
 lunch $LUNCH
 mka bacon | tee logs.txt
 echo -e "$green Build Finished \n $white"
-tg_post_msg "Build Finished..." "$CHATID"
+tg_post_msg " Triggered Build Finished ....." "$CHATID"
 
 		ZIP="out/target/product/ysl/*zip"
 
