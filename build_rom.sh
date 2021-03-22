@@ -40,7 +40,7 @@ tg_error() {
 echo -e "$green Starting Build....... \n $white"
 tg_post_msg " Build Triggered ......" "$CHATID"
 lunch $LUNCH
-mka bacon | tee logs.txt
+mka $MAKE_TARGET | tee logs.txt
 echo -e "$green Build Finished \n $white"
 tg_post_msg " Triggered Build Finished ....." "$CHATID"
 
