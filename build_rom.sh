@@ -7,7 +7,10 @@ white='\033[0m'
 red='\033[0;31m'
 green='\e[0;32m'
 
-# LUNCH
+# DEVICE
+CODENAME="" # FILL DEVICE CODENAME
+
+# BUILD
 MAKE_TARGET="" # FILL TARGET
 LUNCH="" # FILL LUNCH COMMAND
 
@@ -27,38 +30,29 @@ tg_post_msg() {
         -d text="$1"
 }
 
+# Setup transfer.sh
+
+up(){
+	curl --upload-file $1 https://transfer.sh/
+}
+
 # BEGIN COMPILATION!
+
 . build/envsetup.sh
 echo -e "$green Starting Build....... \n $white"
 tg_post_msg " Build Triggered ......" "$CHATID"
+
 lunch $LUNCH
+
 mka $MAKE_TARGET | tee logs.txt
 echo -e "$green Build Finished \n $white"
 tg_post_msg " Triggered Build Finished ....." "$CHATID"
 
-		ZIP="out/target/product/ysl/*zip"
-
-                if [ -f "$ZIP" ]; then
-                echo -e "$green << Build completed ...... >> \n $white"
-        else
-                echo -e "$red << Failed To Build Some Targets , Build Failed .__. EXITING.... >>$white"
-
-        fi
-
-                # Upload the ROM to google drive else transfer.sh!
-                                echo -e "Uploading ROM to Google Drive using gdrive CLI ..."
-                                # In some cases when the gdrive CLI is not set up properly, upload fails.
-                                # In that case upload it to transfer.sh itself
-
-                tg_post_msg "Uploading Build....." "$CHATID"
-
-                                if ! gdrive upload --share -p 1-2KH9G_xwIQ9dqkBirrWl2rd2mBON0aF $ZIP ; then
-                                echo -e "\nAn error occured while uploading to Google Drive."
-                                echo "Uploading ROM zip to transfer.sh..."
-                                tg_post_msg "Build Uploaded....: $(curl -sT $ZIP https://transfer.sh/"$(basename $ZIP)")" $CHATID
-                        else
-
-                        url=$(echo $ZIP | cut -d / -f5)
-                        tg_post_msg "Build Uploaded..... https://rums.dhruv.workers.dev/Rums/$url?rootId=0AMdva1bKNVXjUk9PVA" $CHATID
-
-                        fi
+	if [ -f out/target/product/$CODENAME/*zip ]; then
+		zip=$(up out/target/product/$CODENAME/*zip)
+		echo " "
+		echo "$zip"
+		tg_post_msg "<b>Build Completed</b>%0A%0A<b>Link : </b> <code>"$zip"</code>" "$CHATID"
+	else
+		tg_post_msg "<b>Build Failed, check the error plox.. lol</b>" "$CHATID"
+	fi
