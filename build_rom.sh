@@ -27,14 +27,6 @@ tg_post_msg() {
         -d text="$1"
 }
 
-tg_error() {
-        curl --progress-bar -F document=@"$1" "$BOT_BUILD_URL" \
-        -F chat_id="$2" \
-        -F "disable_web_page_preview=true" \
-        -F "parse_mode=html" \
-        -F caption="$3Failed to build , check this for logs<code>error.log</code>"
-}
-
 # BEGIN COMPILATION!
 . build/envsetup.sh
 echo -e "$green Starting Build....... \n $white"
