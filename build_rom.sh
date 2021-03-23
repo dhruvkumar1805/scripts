@@ -39,14 +39,17 @@ up(){
 # BEGIN COMPILATION!
 
 . build/envsetup.sh
-echo -e "$green Starting Build....... \n $white"
-tg_post_msg " Build Triggered ......" "$CHATID"
+echo -e "$green Setting Up Environment \n $white"
+tg_post_msg " Setting Up Environment." "$CHATID"
 
 lunch $LUNCH
 
+echo -e "$green Build Triggered \n $white"
+tg_post_msg " Build Triggered For $CODENAME" "$CHATID"
+
 mka $MAKE_TARGET | tee logs.txt
 echo -e "$green Build Finished \n $white"
-tg_post_msg " Triggered Build Finished ....." "$CHATID"
+tg_post_msg " Triggered Build Finished For $CODENAME" "$CHATID"
 
 	if [ -f out/target/product/$CODENAME/*zip ]; then
 		zip=$(up out/target/product/$CODENAME/*zip)
