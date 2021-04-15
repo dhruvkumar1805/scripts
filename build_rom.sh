@@ -1,12 +1,5 @@
 #!/bin/bash
 
-# COLOURS
-
-yellow='\033[0;33m'
-white='\033[0m'
-red='\033[0;31m'
-green='\e[0;32m'
-
 # DEVICE
 CODENAME="" # FILL DEVICE CODENAME
 
