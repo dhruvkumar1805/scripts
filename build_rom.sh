@@ -1,54 +1,109 @@
 #!/bin/bash
 
-# DEVICE
-CODENAME="" # FILL DEVICE CODENAME
+# ROM
+ROMNAME="" # This is for filename
+ROM="" # This is for build
+DEVICE="" #ed : ysl
+TARGET="" # EG: user/userdebug
+VERSION="" # Android Versiion ed : 11/10
 
-# BUILD
-MAKE_TARGET="" # FILL TARGET
-LUNCH="" # FILL LUNCH COMMAND
+# Init
+FOLDER="${PWD}"
+OUT="${FOLDER}/out/target/product/$DEVICE"
 
 # TELEGRAM BOT
-
 CHATID="" # Fill Chat Id Of Telegram Group/Channel
-API_BOT="" # Fill API Id Of Bot From BotFater On Telegram
+TELEGRAM_TOKEN="" # Fill API Id Of Bot From BotFater On Telegram
 
 # Setup Telegram Env
+TELEGRAM_FOLDER="${HOME}"/telegram
+if ! [ -d "${TELEGRAM_FOLDER}" ]; then
+    git clone https://github.com/DhruvChhura/telegram.sh/ "${TELEGRAM_FOLDER}"
+fi
 
-export BOT_MSG_URL="https://api.telegram.org/bot$API_BOT/sendMessage"
-export BOT_BUILD_URL="https://api.telegram.org/bot$API_BOT/sendDocument"
+TELEGRAM="${TELEGRAM_FOLDER}"/telegram
 
-tg_post_msg() {
-        curl -s -X POST "$BOT_MSG_URL" -d chat_id="$2" \
-        -d "parse_mode=html" \
-        -d text="$1"
+tg_cast() {
+    "${TELEGRAM}" -t "${TELEGRAM_TOKEN}" -c "${CHATID}" -H \
+    "$(
+		for POST in "${@}"; do
+			echo "${POST}"
+		done
+    )"
+}
+
+tg_pub() {
+    "${TELEGRAM}" -t "${TELEGRAM_TOKEN}" -c "${CHATID}" -T "ROM BUILD COMPLETE" -i "$BANNER" -M \
+    "$(
+                for POST in "${@}"; do
+                        echo "${POST}"
+                done
+    )"
 }
 
 # Setup transfer.sh
-
 up(){
 	curl --upload-file $1 https://transfer.sh/
 }
 
-# BEGIN COMPILATION!
+# CleanUp
+cleanup() {
+    if [ -f "$OUT"/*.zip ]; then
+        rm "$OUT"/*.zip
+    fi
+    if [ -f log.txt ]; then
+        rm log.txt
+    fi
+}
 
-. build/envsetup.sh
-echo -e "$green Setting Up Environment \n $white"
-tg_post_msg " Setting Up Environment." "$CHATID"
-
-lunch $LUNCH
-
-echo -e "$green Build Triggered \n $white"
-tg_post_msg " Build Triggered For $CODENAME" "$CHATID"
-
-mka $MAKE_TARGET | tee logs.txt
-echo -e "$green Build Finished \n $white"
-tg_post_msg " Triggered Build Finished For $CODENAME" "$CHATID"
-
-	if [ -f out/target/product/$CODENAME/*zip ]; then
-		zip=$(up out/target/product/$CODENAME/*zip)
+# Upload Build
+upload() {
+     if [ -f out/target/product/$DEVICE/*zip ]; then
+		zip=$(up out/target/product/$DEVICE/*zip)
 		echo " "
-		echo "$zip"
-		tg_post_msg "<b>Build Completed</b>%0A%0A<b>Link : </b> <code>"$zip"</code>" "$CHATID"
-	else
-		tg_post_msg "<b>Build Failed, check the error plox.. lol</b>" "$CHATID"
-	fi
+		echo "zip"
+    END=$(date +"%s")
+    DIFF=$(( END - START ))
+    tg_pub  "Build took *$((DIFF / 60))* minute(s) and *$((DIFF % 60))* second(s)!" \
+            "--------------------------------------------------------------------" \
+            "ROM: ${ROMNAME}" \
+            "Date: ${BUILD_DATE}" \
+            "*Link:* ${zip}"
+    "${TELEGRAM}" -f log.txt -t "${TELEGRAM_TOKEN}" -c "${CHATID}"
+
+     fi
+}
+
+# Build
+build() {
+    source build/envsetup.sh
+    export "${VERSIONING}"="${VERSION}"
+    lunch "${ROM}"_"${DEVICE}"-"${TARGET}"
+    make bacon | tee log.txt
+}
+
+# Checker
+check() {
+    if ! [ -f "$OUT"/*.zip ]; then
+        END=$(date +"%s")
+	        DIFF=$(( END - START ))
+        tg_cast "${ROMNAME} Build for ${DEVICE} <b>failed</b> in $((DIFF / 60)) minute(s) and $((DIFF % 60)) second(s)!" \
+	        "Check log below"
+        "${TELEGRAM}" -f log.txt -t "${TELEGRAM_TOKEN}" -c "${CHATID}"
+    else
+        upload
+    fi
+}
+
+# Let's start
+BUILD_DATE="$(date)"
+START=$(date +"%s")
+tg_cast "<b>STARTING ROM BUILD</b>" \
+        "ROM: <code>${ROMNAME}</code>" \
+        "Device: ${DEVICE}" \
+        "Version: <code>${VERSION}</code>" \
+        "Build Start: <code>${BUILD_DATE}</code>"
+
+cleanup
+build
+check
