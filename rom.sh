@@ -3,7 +3,7 @@
 # ROM
 ROMNAME="" # This is for filename
 ROM="" # This is for build
-DEVICE="" #ed : ysl
+DEVICE="" #eg : ysl
 TARGET="" # EG: user/userdebug
 VERSION="" # Android Versiion ed : 11/10
 
@@ -77,8 +77,7 @@ upload() {
 # Build
 build() {
     source build/envsetup.sh
-    export "${VERSIONING}"="${VERSION}"
-    lunch "${ROM}"_"${DEVICE}"-"${TARGET}"
+    lunch $ROM_$DEVICE-$TARGET
     make bacon | tee log.txt
 }
 
@@ -100,7 +99,7 @@ BUILD_DATE="$(date)"
 START=$(date +"%s")
 tg_cast "<b>STARTING ROM BUILD</b>" \
         "ROM: <code>${ROMNAME}</code>" \
-        "Device: ${DEVICE}" \
+        "Device: <code>${DEVICE}</code>" \
         "Version: <code>${VERSION}</code>" \
         "Build Start: <code>${BUILD_DATE}</code>"
 
