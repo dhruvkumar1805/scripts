@@ -5,7 +5,7 @@ ROMNAME="" # This is for filename
 ROM="" # This is for build
 DEVICE="" #eg : ysl
 TARGET="" # EG: user/userdebug
-VERSION="" # Android Versiion ed : 11/10
+VERSION="" # Android Version! eg: 11/10
 
 # Init
 FOLDER="${PWD}"
@@ -48,7 +48,7 @@ up(){
 
 # CleanUp
 cleanup() {
-    if [ -f "$OUT"/*.zip ]; then
+    if [ -f "$OUT"/*2021*.zip ]; then
         rm "$OUT"/*.zip
     fi
     if [ -f log.txt ]; then
@@ -66,9 +66,9 @@ upload() {
     DIFF=$(( END - START ))
     tg_pub  "Build took *$((DIFF / 60))* minute(s) and *$((DIFF % 60))* second(s)!" \
             "--------------------------------------------------------------------" \
-            "ROM: ${ROMNAME}" \
+            "Rom: ${ROMNAME}" \
             "Date: ${BUILD_DATE}" \
-            "*Link:* ${zip}"
+            "Link: ${zip}"
     "${TELEGRAM}" -f log.txt -t "${TELEGRAM_TOKEN}" -c "${CHATID}"
 
      fi
@@ -83,7 +83,7 @@ build() {
 
 # Checker
 check() {
-    if ! [ -f "$OUT"/*.zip ]; then
+    if ! [ -f "$OUT"/*2021*.zip ]; then
         END=$(date +"%s")
 	        DIFF=$(( END - START ))
         tg_cast "${ROMNAME} Build for ${DEVICE} <b>failed</b> in $((DIFF / 60)) minute(s) and $((DIFF % 60)) second(s)!" \
