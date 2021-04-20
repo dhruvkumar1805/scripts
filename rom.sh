@@ -49,7 +49,7 @@ up(){
 # CleanUp
 cleanup() {
     if [ -f "$OUT"/*2021*.zip ]; then
-        rm "$OUT"/*.zip
+        rm "$OUT"/*2021*.zip
     fi
     if [ -f log.txt ]; then
         rm log.txt
@@ -58,8 +58,8 @@ cleanup() {
 
 # Upload Build
 upload() {
-     if [ -f out/target/product/$DEVICE/*zip ]; then
-		zip=$(up out/target/product/$DEVICE/*zip)
+     if [ -f out/target/product/$DEVICE/*2021*zip ]; then
+		zip=$(up out/target/product/$DEVICE/*2021*zip)
 		echo " "
 		echo "zip"
     END=$(date +"%s")
