@@ -16,6 +16,9 @@ CHATID="" # Fill Chat Id Of Telegram Group/Channel
 API_BOT="" # Fill API Id Of Bot From BotFater On Telegram
 
 # Setup Telegram Env
+export BOT_MSG_URL="https://api.telegram.org/bot$API_BOT/sendMessage"
+export BOT_BUILD_URL="https://api.telegram.org/bot$API_BOT/sendDocument"
+
 tg_post_msg() {
         curl -s -X POST "$BOT_MSG_URL" -d chat_id="$2" \
         -d "parse_mode=html" \
