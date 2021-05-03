@@ -64,7 +64,7 @@ upload() {
 # Build
 build() {
     source build/envsetup.sh
-    lunch $ROM_$DEVICE-$TARGET
+    lunch "$ROM"_"$DEVICE"-"$TARGET"
     make bacon | tee log.txt
 }
 
