@@ -10,6 +10,11 @@ green='\e[0;32m'
 
 sudo apt-get update && sudo apt-get upgrade
 
+# Git credentials
+echo -e "$green Setting Up Git Credentials \n $white"
+git config --global user.name "DhruvChhura"
+git config --global user.email "dhruvchhura18@gmail.com"
+
 sudo apt install git wget figlet -y
 
 # clone Akhil Narang's script
