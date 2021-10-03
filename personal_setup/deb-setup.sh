@@ -10,39 +10,27 @@ green='\e[0;32m'
 
 sudo apt-get update && sudo apt-get upgrade
 
+sudo apt install git wget figlet -y
+
 # Git credentials
 echo -e "$green Setting Up Git Credentials \n $white"
 git config --global user.name "DhruvChhura"
 git config --global user.email "dhruvchhura18@gmail.com"
 
-sudo apt install git wget figlet -y
+# clone Akhil Narang's scripts
+mkdir tmp
+git clone https://github.com/akhilnarang/scripts tmp/scripts
 
-# clone Akhil Narang's script
-git clone https://github.com/akhilnarang/scripts
+echo -e "$green Running Environment Setup Script \n $white"
+bash tmp/scripts/setup/android_build_env.sh
 
-# install apps
-
-read -rp "Install Apps (Tg , VS Code , Chrome etc)? y/n " ANS
-
-if [ $ANS == y ]; then
 echo -e "$green Installing Apps! \n $white"
-#install telegram
-sudo apt install telegram-desktop
-
-#install VS Code
+sudo snap install telegram-desktop
 sudo snap install --classic code
-
-# download chrome
 wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-
-# install chrome
 sudo dpkg -i google-chrome-stable_current_amd64.deb
-fi
 
-if [ $ANS == n ]; then
-echo -e "$yellow Skipping The Installation Of Apps! \n $white"
-echo -e "$green Setting Up Environment \n $white"
-bash scripts/setup/android_build_env.sh
-figlet "Done!"
+echo -e "$green Cleaning! \n $white"
+rm -rf tmp
 
-fi
+echo -e "$green Done! \n $white"
