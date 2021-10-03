@@ -3,9 +3,9 @@
 # ROM
 FNAME="" # This is for filename
 ROM="" # This is for build
-DEVICE="" #eg : ysl
+DEVICE="" # Device Codename
 TARGET="" # EG: user/userdebug
-VERSION="" # Android Version! eg: 11/10
+VERSION="" # Q/R
 
 # TELEGRAM BOT
 CHATID="" # Fill Chat Id Of Telegram Group/Channel
@@ -50,31 +50,31 @@ cleanup() {
 # Upload Build
 upload() {
      if [ -f out/target/product/$DEVICE/*2021*zip ]; then
-		zip=$(up out/target/product/$DEVICE/*2021*zip)
-		md5sum=$(md5sum "$OUT"/*2021*zip | awk '{print $1}')
-		size=$(ls -sh "$OUT"/*2021*zip | awk '{print $1}')
-		echo " "
-		echo "zip"
-    END=$(date +"%s")
-    DIFF=$(( END - START ))
-    tg_post_msg  "<b>Build took *$((DIFF / 60))* minute(s) and *$((DIFF % 60))* second(s)</b>%0A%0A<b>Rom: </b> <code>$FNAME</code>%0A<b>Date: </b> <code>$BUILD_DATE</code>%0A<b>Size: </b> <code>$size</code>%0A<b>Md5sum: </b> <code>$md5sum</code>%0A<b>Link: </b> <code>$zip</code>" "$CHATID"
-    tg_error log.txt "$CHATID"
+	zip=$(up out/target/product/$DEVICE/*2021*zip)
+	md5sum=$(md5sum "$OUT"/*2021*zip | awk '{print $1}')
+	size=$(ls -sh "$OUT"/*2021*zip | awk '{print $1}')
+	echo " "
+	echo "zip"
+	END=$(TZ=Asia/Kolkata date +"%s")
+ 	DIFF=$(( END - START ))
+	tg_post_msg  "<b>Build took *$((DIFF / 60))* minute(s) and *$((DIFF % 60))* second(s)</b>%0A%0A<b>Rom: </b> <code>$FNAME</code>%0A<b>Date: </b> <code>$BUILD_DATE</code>%0A<b>Size: </b> <code>$size</code>%0A<b>Md5sum: </b> <code>$md5sum</code>%0A<b>Link: </b> <code>$zip</code>" "$CHATID"
+	tg_error log.txt "$CHATID"
 
      fi
 }
 
 # Build
 build() {
-    source build/envsetup.sh
-    lunch "$ROM"_"$DEVICE"-"$TARGET"
-    make bacon | tee log.txt
+	source build/envsetup.sh
+	lunch "$ROM"_"$DEVICE"-"$TARGET"
+	make bacon | tee log.txt
 }
 
 # Checker
 check() {
     if ! [ -f "$OUT"/*2021*.zip ]; then
-        END=$(date +"%s")
-	        DIFF=$(( END - START ))
+        END=$(TZ=Asia/Kolkata date +"%s")
+	DIFF=$(( END - START ))
         tg_post_msg "$FNAME Build for $DEVICE <b>failed</b> in $((DIFF / 60)) minute(s) and $((DIFF % 60)) second(s)!" "$CHATID"
 	tg_post_msg "Check log below" "$CHATID"
         tg_error log.txt "$CHATID"
@@ -84,8 +84,8 @@ check() {
 }
 
 # Let's start
-BUILD_DATE="$(date)"
-START=$(date +"%s")
+BUILD_DATE="$(TZ=Asia/Kolkata date)"
+START=$(TZ=Asia/Kolkata date +"%s")
 tg_post_msg "<b>STARTING BUILD</b>%0A%0A<b>Rom: </b> <code>$FNAME</code>%0A<b>Device: </b> <code>$DEVICE</code>%0A<b>Target: </b> <code>$TARGET</code>%0A<b>Version: </b> <code>$VERSION</code>%0A<b>Build Start: </b> <code>$BUILD_DATE</code>" "$CHATID"
 
 cleanup
