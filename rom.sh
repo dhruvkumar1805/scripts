@@ -4,8 +4,8 @@
 FNAME="" # This is for filename
 ROM="" # This is for build
 DEVICE="" # Device Codename
-TARGET="" # EG: user/userdebug
-VERSION="" # Q/R
+TARGET="" # Build type: user/userdebug/eng
+VERSION="" # Android version
 
 # TELEGRAM BOT
 CHATID="" # Fill Chat Id Of Telegram Group/Channel
@@ -14,6 +14,7 @@ API_BOT="" # Fill API Id Of Bot From BotFater On Telegram
 # Init
 FOLDER="${PWD}"
 OUT="${FOLDER}/out/target/product/$DEVICE"
+ERROR_LOG="out/error.log"
 
 # Setup Telegram Env
 export BOT_MSG_URL="https://api.telegram.org/bot$API_BOT/sendMessage"
@@ -42,6 +43,9 @@ cleanup() {
     if [ -f "$OUT"/*2021*.zip ]; then
         rm "$OUT"/*2021*.zip
     fi
+    if [ -f "$ERROR_LOG" ]; then
+        rm "$ERROR_LOG"
+    fi
     if [ -f log.txt ]; then
         rm log.txt
     fi
@@ -58,8 +62,7 @@ upload() {
 	END=$(TZ=Asia/Kolkata date +"%s")
  	DIFF=$(( END - START ))
 	tg_post_msg  "<b>Build took *$((DIFF / 60))* minute(s) and *$((DIFF % 60))* second(s)</b>%0A%0A<b>Rom: </b> <code>$FNAME</code>%0A<b>Date: </b> <code>$BUILD_DATE</code>%0A<b>Size: </b> <code>$size</code>%0A<b>Md5sum: </b> <code>$md5sum</code>%0A<b>Link: </b> <code>$zip</code>" "$CHATID"
-	tg_error log.txt "$CHATID"
-
+	tg_error "log.txt" "$CHATID"
      fi
 }
 
@@ -77,7 +80,7 @@ check() {
 	DIFF=$(( END - START ))
         tg_post_msg "$FNAME Build for $DEVICE <b>failed</b> in $((DIFF / 60)) minute(s) and $((DIFF % 60)) second(s)!" "$CHATID"
 	tg_post_msg "Check log below" "$CHATID"
-        tg_error log.txt "$CHATID"
+        tg_error "$ERROR_LOG" "$CHATID"
     else
         upload
     fi
