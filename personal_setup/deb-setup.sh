@@ -2,18 +2,21 @@
 
 sudo echo
 
-# Color setup
-yellow='\033[0;33m'
-white='\033[0m'
-red='\033[0;31m'
-green='\e[0;32m'
+# Colour setup
+red=$(tput setaf 1)             #  red
+grn=$(tput setaf 2)             #  green
+blu=$(tput setaf 4)             #  blue
+txtbld=$(tput bold)             #  bold
+bldred=${txtbld}$(tput setaf 1) #  bold red
+bldgrn=${txtbld}$(tput setaf 2) #  bold green
+bldblu=${txtbld}$(tput setaf 4) #  bold blue
+txtrst=$(tput sgr0)             #  reset
 
-sudo apt-get update && sudo apt-get upgrade
-
-sudo apt install git wget figlet -y
+echo "$grn Updating and installing packages. . . $txtrst"
+sudo apt-get update -qq && sudo apt-get upgrade -y && sudo apt install git -y
 
 # Git credentials
-echo -e "$green Setting Up Git Credentials \n $white"
+echo "$grn Setting Up Git Credentials. . . $txtrst"
 git config --global user.name "DhruvChhura"
 git config --global user.email "dhruvchhura18@gmail.com"
 
@@ -21,16 +24,16 @@ git config --global user.email "dhruvchhura18@gmail.com"
 mkdir tmp
 git clone https://github.com/akhilnarang/scripts tmp/scripts
 
-echo -e "$green Running Environment Setup Script \n $white"
+echo "$grn Running Environment Setup Script. . .$txtrst"
 bash tmp/scripts/setup/android_build_env.sh
 
-echo -e "$green Installing Apps! \n $white"
+echo "$grn Installing Apps. . .$txtrst"
 sudo snap install telegram-desktop
 sudo snap install --classic code
-wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb -P tmp/
 sudo dpkg -i google-chrome-stable_current_amd64.deb
 
-echo -e "$green Cleaning! \n $white"
-rm -rf tmp
+echo "$grn Cleaning. . .$txtrst"
+rm -rf tmp/
 
-echo -e "$green Done! \n $white"
+echo "$grnbld Done! $txtrst"
