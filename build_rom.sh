@@ -3,7 +3,7 @@
 # Build info.
 ROM_NAME="" # Name of the ROM you are compiling e.g. LineageOS
 LUNCH="" # Lunch command e.g. lineage_ysl-userdebug
-MAKE_TARGET="" # Compilation target. e.g. bacon or kernel
+MAKE_TARGET="" # Compilation target. e.g. bacon or bootimage
 CHATID="" # Your telegram group/channel chatid
 API_BOT="" # Your HTTP API bot token
 
@@ -24,13 +24,13 @@ error() {
         -F "parse_mode=html"
 }
 
+# Exit if not specified
 if [[ $LUNCH == "" ]] || [[ $MAKE_TARGET == "" ]] || [[ $API_BOT == "" ]] || [[ $CHATID == "" ]] || [[ $ROM_NAME == "" ]]; then
 	echo -e "\nBRUH: All commands are not specified! Exiting. . .\n"
 	exit 1
 fi
 
 DEVICE="$(sed -e "s/^.*_//" -e "s/-.*//" <<< "$LUNCH")"
-BUILD_DATE="$(TZ=Asia/Kolkata date)"
 OUT="$(pwd)/out/target/product/$DEVICE"
 ERROR_LOG="out/error.log"
 
@@ -41,44 +41,34 @@ up(){
 
 # Clean old builds/logs if found
 cleanup() {
-    if [ -f "$OUT"/*2021*.zip ]; then
-        rm "$OUT"/*2021*.zip
-    fi
-    if [ -f "$ERROR_LOG" ]; then
-        rm "$ERROR_LOG"
-    fi
-    if [ -f log.txt ]; then
-        rm log.txt
-    fi
+	if [ -f "$OUT"/*2021*.zip ]; then
+		rm "$OUT"/*2021*.zip
+	fi
+	if [ -f "$ERROR_LOG" ]; then
+		rm "$ERROR_LOG"
+	fi
+	if [ -f log.txt ]; then
+		rm log.txt
+	fi
 }
-
-read -r -d '' zip <<EOT
-<b>Build status: Completed</b>
-
-<b>Rom:</b> $ROM_NAME
-<b>Size:</b> <code>$size</code>
-<b>MD5:</b> <code>$md5sum</code>
-<b>Download:</b> <a href="$zip">here</a>
-EOT
-
-read -r -d '' failed <<EOT
-<b>Build status: Failed</b>
-Check log below
-EOT
 
 # Upload Build
 upload() {
-     if [ -f out/target/product/$DEVICE/*2021*zip ]; then
-	zip=$(up out/target/product/$DEVICE/*2021*zip)
-	md5sum=$(md5sum "$OUT"/*2021*zip | awk '{print $1}')
-	size=$(ls -sh "$OUT"/*2021*zip | awk '{print $1}')
-	echo " "
-	echo "zip"
-	END=$(TZ=Asia/Kolkata date +"%s")
- 	DIFF=$(( END - START ))
-	message "$zip" "$CHATID" > /dev/null
-	error "log.txt" "$CHATID" > /dev/null
-     fi
+	if [ -f out/target/product/$DEVICE/*2021*zip ]; then
+		END=$(TZ=Asia/Kolkata date +"%s")
+		DIFF=$(( END - START ))
+		zip=$(up out/target/product/$DEVICE/*2021*zip)
+		md5sum=$(md5sum "$OUT"/*2021*zip | awk '{print $1}')
+		size=$(ls -sh "$OUT"/*2021*zip | awk '{print $1}')
+		echo -e "\nUploading zip. . .\n"
+
+		read -r -d '' final <<EOT
+		<b>Build status: Completed</b>%0A<b>Time taken: $((DIFF / 60)) minute(s) and $((DIFF % 60)) second(s)</b>%0A%0A<b>Size:</b> <code>$size</code>%0A<b>MD5:</b> <code>$md5sum</code>%0A<b>Download:</b> <a href="$zip">here</a>
+EOT
+
+		message "$final" "$CHATID" > /dev/null
+		error "log.txt" "$CHATID" > /dev/null
+	fi
 }
 
 # Build
@@ -93,6 +83,11 @@ check() {
     if ! [ -f "$OUT"/*2021*.zip ]; then
 	END=$(TZ=Asia/Kolkata date +"%s")
 	DIFF=$(( END - START ))
+
+	read -r -d '' failed <<EOT
+        <b>Build status: Failed</b>%0A<b>Failed in $((DIFF / 60)) minute(s) and $((DIFF % 60)) second(s)!</b>%0A%0ACheck log below
+EOT
+
 	message "$failed" "$CHATID" > /dev/null
 	error "$ERROR_LOG" "$CHATID" > /dev/null
     else
@@ -106,7 +101,7 @@ START=$(TZ=Asia/Kolkata date +"%s")
 read -r -d '' start <<EOT
 <b>Build status: Started</b>
 
-<b>Rom:</b> $ROM_NAME
+<b>Rom:</b> <code>$ROM_NAME</code>
 <b>Device:</b> <code>$DEVICE</code>
 <b>Source directory:</b> <code>$(pwd)</code>
 <b>Make target:</b> <code>$MAKE_TARGET</code>
