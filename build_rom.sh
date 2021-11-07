@@ -4,6 +4,7 @@
 ROM_NAME="" # Name of the ROM you are compiling e.g. LineageOS
 LUNCH="" # Lunch command e.g. lineage_ysl-userdebug
 MAKE_TARGET="" # Compilation target. e.g. bacon or bootimage
+USE_BRUNCH="" # yes|no Set to yes if you need to use brunch to build else no for lunch and bacon
 CHATID="" # Your telegram group/channel chatid
 API_BOT="" # Your HTTP API bot token
 
@@ -25,7 +26,7 @@ error() {
 }
 
 # Exit if not specified
-if [[ $LUNCH == "" ]] || [[ $MAKE_TARGET == "" ]] || [[ $API_BOT == "" ]] || [[ $CHATID == "" ]] || [[ $ROM_NAME == "" ]]; then
+if [[ $LUNCH == "" ]] || [[ $USE_BRUNCH == "" ]] || [[ $MAKE_TARGET == "" ]] || [[ $API_BOT == "" ]] || [[ $CHATID == "" ]] || [[ $ROM_NAME == "" ]]; then
 	echo -e "\nBRUH: All commands are not specified! Exiting. . .\n"
 	exit 1
 fi
@@ -39,11 +40,8 @@ up(){
 	curl --upload-file $1 https://transfer.sh/
 }
 
-# Clean old builds/logs if found
+# Clean old logs if found
 cleanup() {
-	if [ -f "$OUT"/*2021*.zip ]; then
-		rm "$OUT"/*2021*.zip
-	fi
 	if [ -f "$ERROR_LOG" ]; then
 		rm "$ERROR_LOG"
 	fi
@@ -54,16 +52,26 @@ cleanup() {
 
 # Upload Build
 upload() {
-	if [ -f out/target/product/$DEVICE/*2021*zip ]; then
+	if [ -s out/error.log ]; then
 		END=$(TZ=Asia/Kolkata date +"%s")
 		DIFF=$(( END - START ))
-		zip=$(up out/target/product/$DEVICE/*2021*zip)
-		md5sum=$(md5sum "$OUT"/*2021*zip | awk '{print $1}')
-		size=$(ls -sh "$OUT"/*2021*zip | awk '{print $1}')
+
+		read -r -d '' failed <<EOT
+        	<b>Build status: Failed</b>%0A<b>Failed in $((DIFF / 60)) minute(s) and $((DIFF % 60)) second(s)!</b>%0A%0ACheck log below
+EOT
+		message "$failed" "$CHATID" > /dev/null
+		error "$ERROR_LOG" "$CHATID" > /dev/null
+	else
+		ZIP_PATH=$(ls "$OUT"/*2021*.zip | tail -n -1)
+		END=$(TZ=Asia/Kolkata date +"%s")
+		DIFF=$(( END - START ))
 		echo -e "\nUploading zip. . .\n"
+		zip=$(up $ZIP_PATH)
+		md5sum=$(md5sum $ZIP_PATH | awk '{print $1}')
+		size=$(ls -sh $ZIP_PATH | awk '{print $1}')
 
 		read -r -d '' final <<EOT
-		<b>Build status: Completed</b>%0A<b>Time taken: $((DIFF / 60)) minute(s) and $((DIFF % 60)) second(s)</b>%0A%0A<b>Size:</b> <code>$size</code>%0A<b>MD5:</b> <code>$md5sum</code>%0A<b>Download:</b> <a href="$zip">here</a>
+		<b>Build status: Completed</b>%0A<b>Time elapsed: $((DIFF / 60)) minute(s) and $((DIFF % 60)) second(s)</b>%0A%0A<b>Size:</b> <code>$size</code>%0A<b>MD5:</b> <code>$md5sum</code>%0A<b>Download:</b> <a href="$zip">here</a>
 EOT
 
 		message "$final" "$CHATID" > /dev/null
@@ -73,26 +81,14 @@ EOT
 
 # Build
 build() {
-	source build/envsetup.sh
-	lunch "$LUNCH"
-	make "$MAKE_TARGET" | tee log.txt
-}
-
-# Checker
-check() {
-    if ! [ -f "$OUT"/*2021*.zip ]; then
-	END=$(TZ=Asia/Kolkata date +"%s")
-	DIFF=$(( END - START ))
-
-	read -r -d '' failed <<EOT
-        <b>Build status: Failed</b>%0A<b>Failed in $((DIFF / 60)) minute(s) and $((DIFF % 60)) second(s)!</b>%0A%0ACheck log below
-EOT
-
-	message "$failed" "$CHATID" > /dev/null
-	error "$ERROR_LOG" "$CHATID" > /dev/null
-    else
-        upload
-    fi
+	if [ "$USE_BRUNCH" == yes ]; then
+		source build/envssetup.sh
+		brunch "$DEVICE" | tee log.txt
+	else
+		source build/envsetup.sh
+		lunch "$LUNCH"
+		make "$MAKE_TARGET" | tee log.txt
+	fi
 }
 
 # Start
@@ -111,4 +107,4 @@ message "$start" "$CHATID" > /dev/null
 
 cleanup
 build
-check
+upload
