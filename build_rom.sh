@@ -1,12 +1,62 @@
 #!/bin/bash
 
 # Build info.
-ROM_NAME="" # Name of the ROM you are compiling e.g. LineageOS
-LUNCH="" # Lunch command e.g. lineage_ysl-userdebug
-MAKE_TARGET="" # Compilation target. e.g. bacon or bootimage
-USE_BRUNCH="" # yes|no Set to yes if you need to use brunch to build else no for lunch and bacon
+LUNCH="" # (MANDATORY) Lunch command , you should not leave it empty device codename get pulled from the command! e.g. lineage_ysl-userdebug
+MAKE_TARGET="bacon" # (MANDATORY) Compilation target. e.g. bacon or bootimage [Default is bacon!]
+USE_BRUNCH="" # (MANDATORY) yes|no Set to yes if you need to use brunch to build else no for lunch and bacon
 CHATID="" # Your telegram group/channel chatid
 API_BOT="" # Your HTTP API bot token
+
+# Colour setup
+red=$(tput setaf 1)
+grn=$(tput setaf 2)
+ylw=$(tput setaf 3)
+txtbld=$(tput bold)
+txtrst=$(tput sgr0)
+
+DEVICE="$(sed -e "s/^.*_//" -e "s/-.*//" <<< "$LUNCH")"
+ROM_NAME="$(sed -e "s/_.*//" <<< "$LUNCH")"
+OUT="$(pwd)/out/target/product/$DEVICE"
+ERROR_LOG="out/error.log"
+
+# Parameters
+while [[ $# -gt 0 ]]
+do
+
+case $1 in
+    -s|--sync)
+    SYNC="1"
+    ;;
+    -c|--clean)
+    CLEAN="1"
+    ;;
+    -h|--help)
+    echo -e "\nNote: • You should specify all the mandatory variables in the script!
+      • Just run './$0' for normal build
+Usage: ./build_rom.sh [OPTION]
+Example:
+    ./$0 -s -c or ./$0 --sync --clean
+
+Mandatory options:
+    No option is mandatory!, just simply run the script without passing any parameter.
+
+Options:
+    -s, --sync            Sync sources before building.
+    -c, --clean           Clean build directory before compilation.\n"
+    exit 1
+    ;;
+    *) echo -e "$red\nUnknown parameter passed: $1$txtrst\n"
+    exit 1
+    ;;
+esac
+shift
+done
+
+# Exit if mandatory variables are not specified
+if [[ $LUNCH == "" ]] || [[ $USE_BRUNCH == "" ]] || [[ $MAKE_TARGET == "" ]]; then
+	echo -e "$red\nBRUH: Specify all mandatory variables! Exiting...$txtrst\n"
+	exit 1
+fi
 
 # Setup Telegram Env
 export BOT_MSG_URL="https://api.telegram.org/bot$API_BOT/sendMessage"
@@ -25,73 +75,39 @@ error() {
         -F "parse_mode=html"
 }
 
-# Exit if not specified
-if [[ $LUNCH == "" ]] || [[ $USE_BRUNCH == "" ]] || [[ $MAKE_TARGET == "" ]] || [[ $API_BOT == "" ]] || [[ $CHATID == "" ]] || [[ $ROM_NAME == "" ]]; then
-	echo -e "\nBRUH: All commands are not specified! Exiting. . .\n"
-	exit 1
-fi
-
-DEVICE="$(sed -e "s/^.*_//" -e "s/-.*//" <<< "$LUNCH")"
-OUT="$(pwd)/out/target/product/$DEVICE"
-ERROR_LOG="out/error.log"
-
-# Setup transfer.sh
+# Setup we.tl
 up(){
-	curl --upload-file $1 https://transfer.sh/
+	curl -sL https://git.io/file-transfer | sh
+	./transfer wet $1 | tee -a upload.log
 }
 
 # Clean old logs if found
-cleanup() {
-	if [ -f "$ERROR_LOG" ]; then
-		rm "$ERROR_LOG"
+if [ -f "$ERROR_LOG" ]; then
+	rm "$ERROR_LOG"
+fi
+
+if [ -f log.txt ]; then
+	rm log.txt
+fi
+
+if [ -f upload.log ]; then
+	rm upload.log
+fi
+
+# Do if specified
+if [[ -n $SYNC ]]; then
+	echo -e "$grn\nSyncing sources...$txtrst\n"
+	if ! repo sync -c --force-sync --optimized-fetch --no-tags --no-clone-bundle --prune -j$(nproc --all); then
+	echo -e "$red\nSyncing failed!$txtrst" && echo -e "$grn\nStarting build...$txtrst\n"
 	fi
-	if [ -f log.txt ]; then
-		rm log.txt
-	fi
-}
+fi
 
-# Upload Build
-upload() {
-	if [ -s out/error.log ]; then
-		END=$(TZ=Asia/Kolkata date +"%s")
-		DIFF=$(( END - START ))
+if [[ -n $CLEAN ]]; then
+	echo -e "$grn\nClearing out directory...$txtrst\n"
+	rm -rf out
+fi
 
-		read -r -d '' failed <<EOT
-        	<b>Build status: Failed</b>%0A<b>Failed in $((DIFF / 60)) minute(s) and $((DIFF % 60)) second(s)!</b>%0A%0ACheck log below
-EOT
-		message "$failed" "$CHATID" > /dev/null
-		error "$ERROR_LOG" "$CHATID" > /dev/null
-	else
-		ZIP_PATH=$(ls "$OUT"/*2021*.zip | tail -n -1)
-		END=$(TZ=Asia/Kolkata date +"%s")
-		DIFF=$(( END - START ))
-		echo -e "\nUploading zip. . .\n"
-		zip=$(up $ZIP_PATH)
-		md5sum=$(md5sum $ZIP_PATH | awk '{print $1}')
-		size=$(ls -sh $ZIP_PATH | awk '{print $1}')
-
-		read -r -d '' final <<EOT
-		<b>Build status: Completed</b>%0A<b>Time elapsed: $((DIFF / 60)) minute(s) and $((DIFF % 60)) second(s)</b>%0A%0A<b>Size:</b> <code>$size</code>%0A<b>MD5:</b> <code>$md5sum</code>%0A<b>Download:</b> <a href="$zip">here</a>
-EOT
-
-		message "$final" "$CHATID" > /dev/null
-		error "log.txt" "$CHATID" > /dev/null
-	fi
-}
-
-# Build
-build() {
-	if [ "$USE_BRUNCH" == yes ]; then
-		source build/envssetup.sh
-		brunch "$DEVICE" | tee log.txt
-	else
-		source build/envsetup.sh
-		lunch "$LUNCH"
-		make "$MAKE_TARGET" | tee log.txt
-	fi
-}
-
-# Start
+# Send build start message on tg
 START=$(TZ=Asia/Kolkata date +"%s")
 
 read -r -d '' start <<EOT
@@ -103,8 +119,58 @@ read -r -d '' start <<EOT
 <b>Make target:</b> <code>$MAKE_TARGET</code>
 EOT
 
-message "$start" "$CHATID" > /dev/null
+message "$start" "$CHATID"
 
-cleanup
-build
-upload
+# Build
+if [ "$USE_BRUNCH" == yes ]; then
+	echo -e "$grn\nSetting up build environment...$txtrst"
+        source build/envsetup.sh
+
+	echo -e "$grn\nStarting build...$txtrst\n"
+        brunch "$DEVICE" | tee log.txt
+else
+	echo -e "$grn\nSetting up build environment...$txtrst"
+        source build/envsetup.sh
+
+	echo -e "$grn\nLunching $DEVICE...$txtrst"
+        lunch "$LUNCH"
+
+	if [ $? -eq 0 ]; then
+		echo -e "$grn\nStarting build...$txtrst"
+	        make "$MAKE_TARGET" | tee log.txt
+	else
+		echo -e "$grn\nLunching $DEVICE failed...$txtrst"
+		message "<b>Build status: Failed</b>%0A%0A<b>Failed at lunching $DEVICE!</b>" "$CHATID"
+		exit 1
+	fi
+fi
+
+# Upload Build
+END=$(TZ=Asia/Kolkata date +"%s")
+DIFF=$(( END - START ))
+HOURS=$(($DIFF / 3600 ))
+MINS=$((($DIFF % 3600) / 60))
+
+if [ -s out/error.log ]; then
+	read -r -d '' failed <<EOT
+	<b>Build status: Failed</b>%0A%0ACheck log below!
+EOT
+	message "$failed" "$CHATID"
+	error "$ERROR_LOG" "$CHATID"
+
+else
+	ZIP_PATH=$(ls "$OUT"/*2021*.zip | tail -n -1)
+	echo -e "$grn\nUploading zip...$txtrst\n"
+	zip=$(up $ZIP_PATH)
+	md5sum=$(md5sum $ZIP_PATH | awk '{print $1}')
+	size=$(ls -sh $ZIP_PATH | awk '{print $1}')
+	url=$(cat upload.log | grep 'Download' | awk '{ print $3 }')
+
+	read -r -d '' final <<EOT
+	<b>Build status: Completed</b>%0A<b>Time elapsed:</b> <i>$HOURS:$MINS (hh:mm)</i>%0A%0A<b>Size:</b> <code>$size</code>%0A<b>MD5:</b> <code>$md5sum</code>%0A<b>Download:</b> <a href="$url">here</a>
+EOT
+
+	message "$final" "$CHATID"
+	error "log.txt" "$CHATID"
+
+fi

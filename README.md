@@ -1,7 +1,9 @@
 # Some Bash Scripts That I Often Use Personally.
 
-* `build_rom.sh`--> Script for building ROM's, uploads the build to transfer.sh and with Telegram implementation.
+Usage: `bash script.sh`
 
-* `kernel`--> Script for compiling Android kernels.
+* `build_rom.sh`--> Script for compiling any ROM , uploads the build to [we.tl](https://we.tl) and with Telegram implementation.
+
+* `build_kernel.sh`--> Script for compiling Android kernels.
 
 * `personal_setup`--> Personal scripts to setup git credentials , build environment and apps after fresh installation.

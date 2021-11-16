@@ -20,7 +20,7 @@ bldblu=${txtbld}$(tput setaf 4) #  bold blue
 txtrst=$(tput sgr0)             #  reset
 
 if [[ $DEFCONFIG == "" ]] || [[ $COMPILER == "" ]] || [[ $API == "" ]] || [[ $CHAT == "" ]] || [[ $USEER == "" ]] || [[ $HOSST == "" ]] || [[ $CODENAME == "" ]] || [[ $ANYKERNEL == "" ]]; then
-	echo -e "$red\nBRUH: Specify all variables! Exiting. . .$txtrst\n"
+	echo -e "$red\nBRUH: Specify all variables! Exiting...$txtrst\n"
 	exit 1
 fi
 
@@ -46,17 +46,13 @@ error() {
         -F caption="$3Failed to compile the kernel"
 }
 
-message "Script Started" "$CHAT"
-
-echo ""
-
 if [ -d out ];
 then
-	echo -e "$grn\nCleaning and creating dirs. . .$txtrst\n"
+	echo -e "$grn\nCleaning and creating dirs...$txtrst\n"
 	rm -rf AnyKernel/ out/ logs.txt > /dev/null
 	mkdir -p out
 else
-	echo -e "$grn\nCreating dirs. . .$txtrst\n"
+	echo -e "$grn\nCreating dirs...$txtrst\n"
 	mkdir -p out
 fi
 
@@ -64,14 +60,14 @@ toolchain() {
 if [ "$COMPILER" == clang ]; then
 	if [ ! -d "$HOME/proton" ]
 	then
-	echo -e "$grn\nCloning Proton clang. . .$txtrst\n"
+	echo -e "$grn\nCloning Proton clang...$txtrst\n"
 	git clone --depth=1 https://github.com/kdrag0n/proton-clang "$HOME"/proton
 	fi
 
 elif [ "$COMPILER" == gcc ]; then
 	if [ ! -d "$HOME/gcc-arm64" ] || [ ! -d "$HOME/gcc-arm" ]
 	then
-	echo -e "$grn\nCloning EVA gcc. . .$txtrst\n"
+	echo -e "$grn\nCloning EVA gcc...$txtrst\n"
 	git clone --depth=1 https://github.com/mvaisakh/gcc-arm64 "$HOME"/gcc-arm64
 	git clone --depth=1 https://github.com/mvaisakh/gcc-arm "$HOME"/gcc-arm
 	fi
@@ -86,7 +82,7 @@ if [ "$COMPILER" == clang ]; then
 	export KBUILD_BUILD_USER="$USEER"
 	export PATH="$HOME/proton/bin:$PATH"
 	export STRIP="$HOME/proton/aarch64-linux-gnu/bin/strip"
-	echo -e "$bldgrn\nCompiling Kernel. . .$txtrst\n"
+	echo -e "$bldgrn\nCompiling Kernel...$txtrst\n"
 	message "<b>Compiling Kernel</b>%0A%0A<b>Device: </b><code>$CODENAME</code>%0A<b>Compiler: </b><code>$COMPILER</code>%0A<b>Kernel Version: </b><code>$(make kernelversion)</code>" "$CHAT"
 	make O=out ARCH=arm64 "$DEFCONFIG"
 	make -j$(nproc --all) CC=clang CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi- O=out ARCH=arm64 | tee logs.txt
@@ -96,7 +92,7 @@ elif [ "$COMPILER" == gcc ]; then
         export KBUILD_BUILD_USER="$USEER"
 	export PATH="$HOME/gcc-arm64/bin:$HOME/gcc-arm/bin:$PATH"
         export STRIP="$HOME/gcc-arm64/aarch64-elf/bin/strip"
-	echo -e "$bldgrn\nCompiling Kernel. . .$txtrst\n"
+	echo -e "$bldgrn\nCompiling Kernel...$txtrst\n"
 	message "<b>Compiling Kernel</b>%0A%0A<b>Device: </b><code>$CODENAME</code>%0A<b>Compiler: </b><code>$COMPILER</code>%0A<b>Kernel Version: </b><code>$(make kernelversion)</code>" "$CHAT"
 	make O=out ARCH=arm64 "$DEFCONFIG"
 	make -j$(nproc --all) O=out ARCH=arm64 CROSS_COMPILE=aarch64-elf- CROSS_COMPILE_ARM32=arm-eabi- 2>&1 | tee logs.txt
@@ -113,13 +109,13 @@ upload(){
 check() {
 if [ -f "$IMAGE" ]; then
 	echo -e "$grn\nKernel compiled in $(($Diff / 60)) minutes and $(($Diff % 60)) seconds! $txtrst\n"
-	echo -e "$txtbld\nCreating zip. . .$txtrst\n"
+	echo -e "$txtbldCreating zip...$txtrst\n"
 	git clone -qq "$ANYKERNEL" AnyKernel
 	cp -r "$IMAGE" AnyKernel
 	cd AnyKernel
 	mv Image.gz-dtb zImage
 	zip -r9 -qq TestKernel_"$CODENAME"_"$DATE".zip *
-	echo -e "$txtbld\nUploading kernel zip. . .$txtrst\n"
+	echo -e "$txtbld\nUploading kernel zip...$txtrst\n"
 	zip=$(upload TestKernel*2021*zip)
 	size=$(ls -sh TestKernel*2021*zip | awk '{print $1}')
 	md5sum=$(md5sum TestKernel*2021*zip | awk '{print $1}')
