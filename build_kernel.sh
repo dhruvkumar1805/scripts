@@ -48,11 +48,11 @@ error() {
 
 if [ -d out ];
 then
-	echo -e "$grn\nCleaning and creating dirs...$txtrst\n"
+	echo -e "$grn\nCleaning and creating dirs...$txtrst"
 	rm -rf AnyKernel/ out/ logs.txt > /dev/null
 	mkdir -p out
 else
-	echo -e "$grn\nCreating dirs...$txtrst\n"
+	echo -e "$grn\nCreating dirs...$txtrst"
 	mkdir -p out
 fi
 
@@ -60,14 +60,14 @@ toolchain() {
 if [ "$COMPILER" == clang ]; then
 	if [ ! -d "$HOME/proton" ]
 	then
-	echo -e "$grn\nCloning Proton clang...$txtrst\n"
+	echo -e "$grn\nCloning Proton clang...$txtrst"
 	git clone --depth=1 https://github.com/kdrag0n/proton-clang "$HOME"/proton
 	fi
 
 elif [ "$COMPILER" == gcc ]; then
 	if [ ! -d "$HOME/gcc-arm64" ] || [ ! -d "$HOME/gcc-arm" ]
 	then
-	echo -e "$grn\nCloning EVA gcc...$txtrst\n"
+	echo -e "$grn\nCloning EVA gcc...$txtrst"
 	git clone --depth=1 https://github.com/mvaisakh/gcc-arm64 "$HOME"/gcc-arm64
 	git clone --depth=1 https://github.com/mvaisakh/gcc-arm "$HOME"/gcc-arm
 	fi
@@ -91,7 +91,7 @@ elif [ "$COMPILER" == gcc ]; then
         export KBUILD_BUILD_HOST="$HOSST"
         export KBUILD_BUILD_USER="$USEER"
 	export PATH="$HOME/gcc-arm64/bin:$HOME/gcc-arm/bin:$PATH"
-        export STRIP="$HOME/gcc-arm64/aarch64-elf/bin/strip"
+    export STRIP="$HOME/gcc-arm64/aarch64-elf/bin/strip"
 	echo -e "$bldgrn\nCompiling Kernel...$txtrst\n"
 	message "<b>Compiling Kernel</b>%0A%0A<b>Device: </b><code>$CODENAME</code>%0A<b>Compiler: </b><code>$COMPILER</code>%0A<b>Kernel Version: </b><code>$(make kernelversion)</code>" "$CHAT"
 	make O=out ARCH=arm64 "$DEFCONFIG"
@@ -103,7 +103,8 @@ Diff=$(($End - $Start))
 }
 
 upload(){
-	curl --upload-file $1 https://transfer.sh/
+	curl -sL https://git.io/file-transfer | sh
+	./transfer wet $1 | tee -a upload.log
 }
 
 check() {
@@ -119,7 +120,13 @@ if [ -f "$IMAGE" ]; then
 	zip=$(upload TestKernel*2021*zip)
 	size=$(ls -sh TestKernel*2021*zip | awk '{print $1}')
 	md5sum=$(md5sum TestKernel*2021*zip | awk '{print $1}')
-	message "<b>Kernel compiled in $(($Diff / 60)) minutes and $(($Diff % 60)) seconds!</b>%0A%0A<b>Build Date: </b><code>$(TZ=Asia/Kolkata date)</code>%0A<b>Device: </b><code>$CODENAME</code>%0A<b>Size: </b><code>$size</code>%0A<b>MD5sum: </b><code>$md5sum</code>%0A<b>Download Link: </b>$zip" "$CHAT"
+	url=$(cat upload.log | grep 'Download' | awk '{ print $3 }')
+
+	read -r -d '' zip <<EOT
+	<b>Build status: Completed</b>%0A<b>Time elapsed:</b> <i>$(($Diff / 60)) minutes and $(($Diff % 60)) seconds</i>%0A%0A<b>Build Date: </b><code>$(TZ=Asia/Kolkata date)</code>%0A<b>Size: </b><code>$size</code>%0A<b>MD5sum: </b><code>$md5sum</code>%0A<b>Download:</b> <a href="$url">here</a>
+EOT
+
+	message "$zip" "$CHAT"
 	cd ..
 else
 	echo -e "$red\nKernel compilation failed! $txtrst\n"
