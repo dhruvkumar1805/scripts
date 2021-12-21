@@ -162,12 +162,13 @@ else
 	ZIP_PATH=$(ls "$OUT"/*2021*.zip | tail -n -1)
 	echo -e "$grn\nUploading zip...$txtrst\n"
 	zip=$(up $ZIP_PATH)
+	filename="$(basename $ZIP_PATH)"
 	md5sum=$(md5sum $ZIP_PATH | awk '{print $1}')
 	size=$(ls -sh $ZIP_PATH | awk '{print $1}')
 	url=$(cat upload.log | grep 'Download' | awk '{ print $3 }')
 
 	read -r -d '' final <<EOT
-	<b>Build status: Completed</b>%0A<b>Time elapsed:</b> <i>$HOURS:$MINS (hh:mm)</i>%0A%0A<b>Size:</b> <code>$size</code>%0A<b>MD5:</b> <code>$md5sum</code>%0A<b>Download:</b> <a href="$url">here</a>
+	<b>Build status: Completed</b>%0A<b>Time elapsed:</b> <i>$HOURS:$MINS (hh:mm)</i>%0A%0A<b>Size:</b> <code>$size</code>%0A<b>MD5:</b> <code>$md5sum</code>%0A<b>Download:</b> <a href="$url">${filename}</a>
 EOT
 
 	message "$final" "$CHATID"
