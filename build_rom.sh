@@ -13,6 +13,7 @@ grn=$(tput setaf 2)
 ylw=$(tput setaf 3)
 txtbld=$(tput bold)
 txtrst=$(tput sgr0)
+bldgrn=${txtbld}$(tput setaf 2)
 
 DEVICE="$(sed -e "s/^.*_//" -e "s/-.*//" <<< "$LUNCH")"
 ROM_NAME="$(sed -e "s/_.*//" <<< "$LUNCH")"
@@ -96,20 +97,18 @@ fi
 
 # Do if specified
 if [[ -n $SYNC ]]; then
-	echo -e "$grn\nSyncing sources...$txtrst\n"
+	echo -e "$bldgrn\nSyncing sources...$txtrst\n"
 	if ! repo sync -c --force-sync --optimized-fetch --no-tags --no-clone-bundle --prune -j$(nproc --all); then
-	echo -e "$red\nSyncing failed!$txtrst" && echo -e "$grn\nStarting build...$txtrst\n"
+	echo -e "$red\nSyncing failed!$txtrst" && echo -e "$bldgrn\nStarting build...$txtrst\n"
 	fi
 fi
 
 if [[ -n $CLEAN ]]; then
-	echo -e "$grn\nClearing out directory...$txtrst\n"
+	echo -e "$bldgrn\nClearing out directory...$txtrst\n"
 	rm -rf out
 fi
 
 # Send build start message on tg
-START=$(TZ=Asia/Kolkata date +"%s")
-
 read -r -d '' start <<EOT
 <b>Build status: Started</b>
 
@@ -121,25 +120,37 @@ EOT
 
 message "$start" "$CHATID"
 
+START=$(TZ=Asia/Kolkata date +"%s")
+
 # Build
 if [ "$USE_BRUNCH" == yes ]; then
-	echo -e "$grn\nSetting up build environment...$txtrst"
+	echo -e "$bldgrn\nSetting up build environment...$txtrst"
         source build/envsetup.sh
 
-	echo -e "$grn\nStarting build...$txtrst\n"
-        brunch "$DEVICE" | tee log.txt
+	echo -e "$bldgrn\nLunching $DEVICE...$txtrst"
+        lunch "$LUNCH"
+
+	 if [ $? -eq 0 ]; then
+                echo -e "$bldgrn\nStarting build...$txtrst"
+                 brunch "$DEVICE" | tee log.txt
+        else
+                echo -e "$bldgrn\nLunching $DEVICE failed...$txtrst"
+                message "<b>Build status: Failed</b>%0A%0A<b>Failed at lunching $DEVICE!</b>" "$CHATID"
+                exit 1
+        fi
+
 else
-	echo -e "$grn\nSetting up build environment...$txtrst"
+	echo -e "$bldgrn\nSetting up build environment...$txtrst"
         source build/envsetup.sh
 
-	echo -e "$grn\nLunching $DEVICE...$txtrst"
+	echo -e "$bldgrn\nLunching $DEVICE...$txtrst"
         lunch "$LUNCH"
 
 	if [ $? -eq 0 ]; then
-		echo -e "$grn\nStarting build...$txtrst"
+		echo -e "$bldgrn\nStarting build...$txtrst"
 	        make "$MAKE_TARGET" | tee log.txt
 	else
-		echo -e "$grn\nLunching $DEVICE failed...$txtrst"
+		echo -e "$bldgrn\nLunching $DEVICE failed...$txtrst"
 		message "<b>Build status: Failed</b>%0A%0A<b>Failed at lunching $DEVICE!</b>" "$CHATID"
 		exit 1
 	fi
@@ -159,8 +170,8 @@ EOT
 	error "$ERROR_LOG" "$CHATID"
 
 else
-	ZIP_PATH=$(ls "$OUT"/*2021*.zip | tail -n -1)
-	echo -e "$grn\nUploading zip...$txtrst\n"
+	ZIP_PATH=$(ls "$OUT"/*2022*.zip | tail -n -1)
+	echo -e "$bldgrn\nUploading zip...$txtrst\n"
 	zip=$(up $ZIP_PATH)
 	filename="$(basename $ZIP_PATH)"
 	md5sum=$(md5sum $ZIP_PATH | awk '{print $1}')
@@ -168,7 +179,7 @@ else
 	url=$(cat upload.log | grep 'Download' | awk '{ print $3 }')
 
 	read -r -d '' final <<EOT
-	<b>Build status: Completed</b>%0A<b>Time elapsed:</b> <i>$HOURS:$MINS (hh:mm)</i>%0A%0A<b>Size:</b> <code>$size</code>%0A<b>MD5:</b> <code>$md5sum</code>%0A<b>Download:</b> <a href="$url">${filename}</a>
+	<b>Build status: Completed</b>%0A<b>Time elapsed:</b> <i>$HOURS hours and $MINS minutes</i>%0A%0A<b>Size:</b> <code>$size</code>%0A<b>MD5:</b> <code>$md5sum</code>%0A<b>Download:</b> <a href="$url">${filename}</a>
 EOT
 
 	message "$final" "$CHATID"
