@@ -6,6 +6,7 @@ CODENAME="" # Your device codename
 DEFCONFIG="" # Name of your defconfig to be used
 COMPILER="" # Compiler to be used clang/gcc
 ANYKERNEL="" # Your AnyKernel repo url
+BRANCH="" # Your AnyKernel repo branch you want to use
 HOSST="" # Build host
 USEER="" # Build user
 
@@ -27,6 +28,7 @@ fi
 MYDIR=`cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd`
 IMAGE="$MYDIR"/out/arch/arm64/boot/Image.gz-dtb
 DATE="$(TZ=Asia/Kolkata date +"%Y%m%d")"
+ZIP_NAME=Kernel_"$CODENAME"_"$DATE".zip
 
 # Telegram env
 export BOT_M_URL="https://api.telegram.org/bot$API/sendMessage"
@@ -48,11 +50,11 @@ error() {
 
 if [ -d out ];
 then
-	echo -e "$grn\nCleaning and creating dirs...$txtrst"
+	echo -e "$bldgrn\nCleaning and creating dirs...$txtrst"
 	rm -rf AnyKernel/ out/ logs.txt > /dev/null
 	mkdir -p out
 else
-	echo -e "$grn\nCreating dirs...$txtrst"
+	echo -e "$bldgrn\nCreating dirs...$txtrst"
 	mkdir -p out
 fi
 
@@ -60,14 +62,14 @@ toolchain() {
 if [ "$COMPILER" == clang ]; then
 	if [ ! -d "$HOME/proton" ]
 	then
-	echo -e "$grn\nCloning Proton clang...$txtrst"
+	echo -e "$bldgrn\nCloning Proton clang...$txtrst"
 	git clone --depth=1 https://github.com/kdrag0n/proton-clang "$HOME"/proton
 	fi
 
 elif [ "$COMPILER" == gcc ]; then
 	if [ ! -d "$HOME/gcc-arm64" ] || [ ! -d "$HOME/gcc-arm" ]
 	then
-	echo -e "$grn\nCloning EVA gcc...$txtrst"
+	echo -e "$bldgrn\nCloning EVA gcc...$txtrst"
 	git clone --depth=1 https://github.com/mvaisakh/gcc-arm64 "$HOME"/gcc-arm64
 	git clone --depth=1 https://github.com/mvaisakh/gcc-arm "$HOME"/gcc-arm
 	fi
@@ -109,21 +111,22 @@ upload(){
 
 check() {
 if [ -f "$IMAGE" ]; then
-	echo -e "$grn\nKernel compiled in $(($Diff / 60)) minutes and $(($Diff % 60)) seconds! $txtrst\n"
-	echo -e "$txtbldCreating zip...$txtrst\n"
-	git clone -qq "$ANYKERNEL" AnyKernel
+	echo -e "$bldgrn\nKernel compiled in $(($Diff / 60)) minutes and $(($Diff % 60)) seconds! $txtrst"
+	echo -e "$txtbld\nCreating zip...$txtrst\n"
+	git clone -qq "$ANYKERNEL" -b $BRANCH AnyKernel
 	cp -r "$IMAGE" AnyKernel
 	cd AnyKernel
 	mv Image.gz-dtb zImage
-	zip -r9 -qq TestKernel_"$CODENAME"_"$DATE".zip *
+	zip -r9 -qq $ZIP_NAME *
 	echo -e "$txtbld\nUploading kernel zip...$txtrst\n"
-	zip=$(upload TestKernel*2021*zip)
-	size=$(ls -sh TestKernel*2021*zip | awk '{print $1}')
-	md5sum=$(md5sum TestKernel*2021*zip | awk '{print $1}')
+	zip=$(upload $ZIP_NAME)
+	size=$(ls -sh $ZIP_NAME | awk '{print $1}')
+	md5sum=$(md5sum $ZIP_NAME | awk '{print $1}')
+	filename="$(basename $ZIP_NAME)"
 	url=$(cat upload.log | grep 'Download' | awk '{ print $3 }')
 
 	read -r -d '' zip <<EOT
-	<b>Build status: Completed</b>%0A<b>Time elapsed:</b> <i>$(($Diff / 60)) minutes and $(($Diff % 60)) seconds</i>%0A%0A<b>Build Date: </b><code>$(TZ=Asia/Kolkata date)</code>%0A<b>Size: </b><code>$size</code>%0A<b>MD5sum: </b><code>$md5sum</code>%0A<b>Download:</b> <a href="$url">here</a>
+	<b>Build status: Completed</b>%0A<b>Time elapsed:</b> <i>$(($Diff / 60)) minutes and $(($Diff % 60)) seconds</i>%0A%0A<b>Build Date: </b><code>$(TZ=Asia/Kolkata date)</code>%0A<b>Size: </b><code>$size</code>%0A<b>MD5sum: </b><code>$md5sum</code>%0A<b>Download:</b> <a href="$url">${filename}</a>
 EOT
 
 	message "$zip" "$CHAT"
