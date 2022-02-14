@@ -2,6 +2,7 @@
 
 CHAT="" # Chatid of your group/acc
 API="" # Your HTTP API bot token
+KERNEL_NAME="" # Name of your kernel
 CODENAME="" # Your device codename
 DEFCONFIG="" # Name of your defconfig to be used
 COMPILER="" # Compiler to be used clang/gcc
@@ -28,7 +29,7 @@ fi
 MYDIR=`cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd`
 IMAGE="$MYDIR"/out/arch/arm64/boot/Image.gz-dtb
 DATE="$(TZ=Asia/Kolkata date +"%Y%m%d")"
-ZIP_NAME=Kernel_"$CODENAME"_"$DATE".zip
+ZIP_NAME="$KERNEL_NAME"_"$CODENAME"_"$DATE".zip
 
 # Telegram env
 export BOT_M_URL="https://api.telegram.org/bot$API/sendMessage"
@@ -38,6 +39,13 @@ message() {
         curl -s -X POST "$BOT_M_URL" -d chat_id="$2" \
         -d "parse_mode=html" \
         -d text="$1"
+}
+
+post_build() {
+    	curl -F document=@$1 "${BOT_D_URL}" \
+        	-F chat_id="$2" \
+        	-F "disable_web_page_preview=true" \
+        	-F "parse_mode=html"
 }
 
 error() {
@@ -104,11 +112,6 @@ End=$(date +"%s")
 Diff=$(($End - $Start))
 }
 
-upload(){
-	curl -sL https://git.io/file-transfer | sh
-	./transfer wet $1 | tee -a upload.log
-}
-
 check() {
 if [ -f "$IMAGE" ]; then
 	echo -e "$bldgrn\nKernel compiled in $(($Diff / 60)) minutes and $(($Diff % 60)) seconds! $txtrst"
@@ -118,18 +121,16 @@ if [ -f "$IMAGE" ]; then
 	cd AnyKernel
 	mv Image.gz-dtb zImage
 	zip -r9 -qq $ZIP_NAME *
-	echo -e "$txtbld\nUploading kernel zip...$txtrst\n"
-	zip=$(upload $ZIP_NAME)
+	echo -e "$txtbld\nUploading kernel zip on telegram...$txtrst\n"
 	size=$(ls -sh $ZIP_NAME | awk '{print $1}')
 	md5sum=$(md5sum $ZIP_NAME | awk '{print $1}')
-	filename="$(basename $ZIP_NAME)"
-	url=$(cat upload.log | grep 'Download' | awk '{ print $3 }')
 
 	read -r -d '' zip <<EOT
-	<b>Build status: Completed</b>%0A<b>Time elapsed:</b> <i>$(($Diff / 60)) minutes and $(($Diff % 60)) seconds</i>%0A%0A<b>Build Date: </b><code>$(TZ=Asia/Kolkata date)</code>%0A<b>Size: </b><code>$size</code>%0A<b>MD5sum: </b><code>$md5sum</code>%0A<b>Download:</b> <a href="$url">${filename}</a>
+	<b>Build status: Completed</b>%0A<b>Time elapsed:</b> <i>$(($Diff / 60)) minutes and $(($Diff % 60)) seconds</i>%0A%0A<b>Build Date: </b><code>$(TZ=Asia/Kolkata date)</code>%0A<b>Size: </b><code>$size</code>%0A<b>MD5 Checksum: </b><code>$md5sum</code>
 EOT
 
 	message "$zip" "$CHAT"
+	post_build "$ZIP_NAME" "$CHAT"
 	cd ..
 else
 	echo -e "$red\nKernel compilation failed! $txtrst\n"
