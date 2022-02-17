@@ -31,6 +31,9 @@ case $1 in
     -c|--clean)
     CLEAN="1"
     ;;
+    -i|--installclean)
+    INSTALLCLEAN="1"
+    ;;
     -h|--help)
     echo -e "\nNote: • You should specify all the mandatory variables in the script!
       • Just run './$0' for normal build
@@ -43,7 +46,8 @@ Mandatory options:
 
 Options:
     -s, --sync            Sync sources before building.
-    -c, --clean           Clean build directory before compilation.\n"
+    -c, --clean           Clean build directory before compilation
+    -i, --installclean    Make installclean.\n"
     exit 1
     ;;
     *) echo -e "$red\nUnknown parameter passed: $1$txtrst\n"
@@ -106,6 +110,11 @@ fi
 if [[ -n $CLEAN ]]; then
 	echo -e "$bldgrn\nClearing out directory...$txtrst\n"
 	rm -rf out
+fi
+
+if [[ -n $INSTALLCLEAN ]]; then
+	echo -e "$bldgrn\nMaking installclean...$txtrst\n"
+	. build/envsetup.sh && make installclean
 fi
 
 # Send build start message on tg
