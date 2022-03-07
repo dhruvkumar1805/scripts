@@ -179,19 +179,23 @@ EOT
 	error "$ERROR_LOG" "$CHATID"
 
 else
-	ZIP_PATH=$(ls "$OUT"/*2022*.zip | grep -v ota | tail -n -1)
-	echo -e "$bldgrn\nUploading zip...$txtrst\n"
-	zip=$(up $ZIP_PATH)
-	filename="$(basename $ZIP_PATH)"
-	md5sum=$(md5sum $ZIP_PATH | awk '{print $1}')
-	size=$(ls -sh $ZIP_PATH | awk '{print $1}')
-	url=$(cat upload.log | grep 'Download' | awk '{ print $3 }')
+	if [[ $MAKE_TARGET == bacon ]]; then
+		ZIP_PATH=$(ls "$OUT"/*2022*.zip | grep -v ota | tail -n -1)
+		echo -e "$bldgrn\nUploading zip...$txtrst\n"
+		zip=$(up $ZIP_PATH)
+		filename="$(basename $ZIP_PATH)"
+		md5sum=$(md5sum $ZIP_PATH | awk '{print $1}')
+		size=$(ls -sh $ZIP_PATH | awk '{print $1}')
+		url=$(cat upload.log | grep 'Download' | awk '{ print $3 }')
 
-	read -r -d '' final <<EOT
-	<b>Build status: Completed</b>%0A<b>Time elapsed:</b> <i>$HOURS hours and $MINS minutes</i>%0A%0A<b>Size:</b> <code>$size</code>%0A<b>MD5:</b> <code>$md5sum</code>%0A<b>Download:</b> <a href="$url">${filename}</a>
+		read -r -d '' final <<EOT
+		<b>Build status: Completed</b>%0A<b>Time elapsed:</b> <i>$HOURS hours and $MINS minutes</i>%0A%0A<b>Size:</b> <code>$size</code>%0A<b>MD5:</b> <code>$md5sum</code>%0A<b>Download:</b> <a href="$url">${filename}</a>
 EOT
+		message "$final" "$CHATID"
+		error "log.txt" "$CHATID"
 
-	message "$final" "$CHATID"
-	error "log.txt" "$CHATID"
-
+	else
+		message "<b>Build status: Completed</b>%0A<b>Time elapsed:</b> <i>$HOURS hours and $MINS minutes</i>%0A%0A<b>$MAKE_TARGET compiled successfully!</b>" "$CHATID"
+		error "log.txt" "$CHATID"
+	fi
 fi
