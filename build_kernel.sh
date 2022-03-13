@@ -28,7 +28,7 @@ fi
 
 MYDIR=`cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd`
 IMAGE="$MYDIR"/out/arch/arm64/boot/Image.gz-dtb
-DATE="$(TZ=Asia/Kolkata date +"%Y%m%d")"
+DATE="$(TZ=Asia/Kolkata date +"%Y%m%d-%H%M")"
 ZIP_NAME="$KERNEL_NAME"_"$CODENAME"_"$DATE".zip
 
 # Telegram env
@@ -66,7 +66,6 @@ else
 	mkdir -p out
 fi
 
-toolchain() {
 if [ "$COMPILER" == clang ]; then
 	if [ ! -d "$HOME/proton" ]
 	then
@@ -82,37 +81,37 @@ elif [ "$COMPILER" == gcc ]; then
 	git clone --depth=1 https://github.com/mvaisakh/gcc-arm "$HOME"/gcc-arm
 	fi
 fi
-}
 
-compile() {
+if [[ $1 = "-r" || $1 = "--regen" ]]; then
+	make O=out ARCH=arm64 $DEFCONFIG
+	cp out/.config arch/arm64/configs/"$DEFCONFIG"
+	git add arch/arm64/configs/"$DEFCONFIG"
+	git commit -m "arch/arm64: $DEFCONFIG: Regenerate"
+	echo -e "$bldgrn\nSuccessfully regenerated $DEFCONFIG $txtrst\n"
+	exit
+fi
+
+export KBUILD_BUILD_HOST="$HOSST"
+export KBUILD_BUILD_USER="$USEER"
+
 Start=$(date +"%s")
-
 if [ "$COMPILER" == clang ]; then
-	export KBUILD_BUILD_HOST="$HOSST"
-	export KBUILD_BUILD_USER="$USEER"
 	export PATH="$HOME/proton/bin:$PATH"
-	export STRIP="$HOME/proton/aarch64-linux-gnu/bin/strip"
 	echo -e "$bldgrn\nCompiling Kernel...$txtrst\n"
 	message "<b>Compiling Kernel</b>%0A%0A<b>Device: </b><code>$CODENAME</code>%0A<b>Compiler: </b><code>$COMPILER</code>%0A<b>Kernel Version: </b><code>$(make kernelversion)</code>" "$CHAT"
 	make O=out ARCH=arm64 "$DEFCONFIG"
 	make -j$(nproc --all) CC=clang CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi- O=out ARCH=arm64 | tee logs.txt
 
 elif [ "$COMPILER" == gcc ]; then
-        export KBUILD_BUILD_HOST="$HOSST"
-        export KBUILD_BUILD_USER="$USEER"
 	export PATH="$HOME/gcc-arm64/bin:$HOME/gcc-arm/bin:$PATH"
-    export STRIP="$HOME/gcc-arm64/aarch64-elf/bin/strip"
 	echo -e "$bldgrn\nCompiling Kernel...$txtrst\n"
 	message "<b>Compiling Kernel</b>%0A%0A<b>Device: </b><code>$CODENAME</code>%0A<b>Compiler: </b><code>$COMPILER</code>%0A<b>Kernel Version: </b><code>$(make kernelversion)</code>" "$CHAT"
 	make O=out ARCH=arm64 "$DEFCONFIG"
 	make -j$(nproc --all) O=out ARCH=arm64 CROSS_COMPILE=aarch64-elf- CROSS_COMPILE_ARM32=arm-eabi- 2>&1 | tee logs.txt
 fi
-
 End=$(date +"%s")
 Diff=$(($End - $Start))
-}
 
-check() {
 if [ -f "$IMAGE" ]; then
 	echo -e "$bldgrn\nKernel compiled in $(($Diff / 60)) minutes and $(($Diff % 60)) seconds! $txtrst"
 	echo -e "$txtbld\nCreating zip...$txtrst\n"
@@ -136,8 +135,4 @@ else
 	echo -e "$red\nKernel compilation failed! $txtrst\n"
 	error "logs.txt" "$CHAT"
 fi
-}
 
-toolchain
-compile
-check
