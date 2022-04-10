@@ -180,7 +180,7 @@ EOT
 
 else
 	if [[ $MAKE_TARGET == bacon ]]; then
-		ZIP_PATH=$(ls "$OUT"/*2022*.zip | grep -v ota | tail -n -1)
+		ZIP_PATH=$(ls "$OUT"/*2022*.zip | grep -vE 'ota|OTA' | tail -n -1)
 		echo -e "$bldgrn\nUploading zip...$txtrst\n"
 		zip=$(up $ZIP_PATH)
 		filename="$(basename $ZIP_PATH)"
