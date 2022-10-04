@@ -17,7 +17,7 @@ sudo apt install -qq git automake adb fastboot clang lzip apt-utils gnupg libtoo
                         lib32z1-dev libgl1-mesa-dev libxml2-utils xsltproc unzip fontconfig imagemagick \
                         python2 python3 python3-pip python3-dev python-is-python3 schedtool ccache libtinfo5 \
                         libncurses5 lzop tmux libssl-dev patch patchelf apktool dos2unix git-lfs default-jdk \
-                        libxml-simple-perl -y
+                        libxml-simple-perl zram-config -y
 
 sudo curl --create-dirs -L -o /usr/local/bin/repo -O -L https://storage.googleapis.com/git-repo-downloads/repo
 sudo chmod a+rx /usr/local/bin/repo
