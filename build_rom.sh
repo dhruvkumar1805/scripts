@@ -1,4 +1,10 @@
 #!/bin/bash
+#
+# Copyright (C) 2022 DhruvChhura
+#
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 
 # Build info.
 LUNCH="" # (MANDATORY) Lunch command , you should not leave it empty device codename get pulled from the command! e.g. lineage_ysl-userdebug
