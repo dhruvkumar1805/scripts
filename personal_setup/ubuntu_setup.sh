@@ -25,8 +25,8 @@ sudo chmod a+rx /usr/local/bin/repo
 # Git
 if [[ $USER == "dhruv" ]]; then
 echo -e "$grn\nSetting up git. . .$txtrst\n"
-git config --global user.name "DhruvChhura"
-git config --global user.email "dhruvchhura18@gmail.com"
+git config --global user.name "dhruvkumar1805"
+git config --global user.email "dhruvkumar1805@gmail.com"
 fi
 
 # Apps
