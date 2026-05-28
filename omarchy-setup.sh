@@ -36,6 +36,17 @@ sed -i '/SUPER SHIFT, P, Google Photos/d' "$BINDINGS"
 sed -i 's|SUPER SHIFT ALT, A, Grok, exec, omarchy-launch-webapp "https://grok.com"|SUPER SHIFT ALT, A, Gemini, exec, omarchy-launch-webapp "https://gemini.google.com/"|' "$BINDINGS"
 sed -i 's/SUPER SHIFT ALT, G, WhatsApp/SUPER SHIFT, W, WhatsApp/' "$BINDINGS"
 
+# ── webapps ──────────────────────────────────────────────────────────────────
+log "Setting up webapps"
+
+# remove omarchy defaults we don't use
+omarchy-webapp-remove "HEY" "Basecamp" "Google Photos" "Google Contacts" "Google Messages" "Google Maps" "Fizzy"
+
+# add ones omarchy doesn't install by default
+omarchy-webapp-install "Netflix"     https://netflix.com      "https://www.google.com/s2/favicons?domain=netflix.com&sz=128"
+omarchy-webapp-install "Notion"      https://notion.so        "https://www.google.com/s2/favicons?domain=notion.so&sz=128"
+omarchy-webapp-install "Prime Video" https://primevideo.com   "https://www.google.com/s2/favicons?domain=primevideo.com&sz=128"
+
 # ── browsers ─────────────────────────────────────────────────────────────────
 # omarchy-install-browser handles aur install + theme sync + policy setup
 log "Setting up browsers"
@@ -44,6 +55,10 @@ omarchy-pkg-drop chromium 2>/dev/null || true
 omarchy-install-browser chrome
 omarchy-install-browser brave
 omarchy-default-browser chrome
+
+# ── vscode ────────────────────────────────────────────────────────────────────
+log "Installing VS Code"
+omarchy-install-vscode
 
 # ── monitors.conf ─────────────────────────────────────────────────────────────
 # external on the left, laptop on the right
