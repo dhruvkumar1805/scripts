@@ -36,6 +36,15 @@ sed -i '/SUPER SHIFT, P, Google Photos/d' "$BINDINGS"
 sed -i 's|SUPER SHIFT ALT, A, Grok, exec, omarchy-launch-webapp "https://grok.com"|SUPER SHIFT ALT, A, Gemini, exec, omarchy-launch-webapp "https://gemini.google.com/"|' "$BINDINGS"
 sed -i 's/SUPER SHIFT ALT, G, WhatsApp/SUPER SHIFT, W, WhatsApp/' "$BINDINGS"
 
+# ── browsers ─────────────────────────────────────────────────────────────────
+# omarchy-install-browser handles aur install + theme sync + policy setup
+log "Setting up browsers"
+
+omarchy-pkg-drop chromium 2>/dev/null || true
+omarchy-install-browser chrome
+omarchy-install-browser brave
+omarchy-default-browser chrome
+
 # ── monitors.conf ─────────────────────────────────────────────────────────────
 # external on the left, laptop on the right
 # positions are in logical pixels (so eDP-1 starts at 1920, not 1920/1.5)
