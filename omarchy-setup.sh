@@ -4,7 +4,13 @@ set -euo pipefail
 
 HYPR="$HOME/.config/hypr"
 
-log() { echo ">> $1"; }
+BOLD=$(tput bold)
+CYAN=$(tput setaf 6)
+GRN=$(tput setaf 2)
+RST=$(tput sgr0)
+
+log()  { echo -e "\n${BOLD}${CYAN}==> $1${RST}"; }
+ok()   { echo -e "${GRN}  ✓ $1${RST}"; }
 
 if [[ ! -d "$HYPR" ]]; then
   echo "ERROR: $HYPR not found. is omarchy installed?"
@@ -19,6 +25,7 @@ sed -i 's/# natural_scroll = true/natural_scroll = true/' "$INPUT"
 sed -i 's/repeat_delay = 250/repeat_delay = 600/' "$INPUT"
 sed -i 's/kb_options = compose:caps /kb_options = /' "$INPUT"
 sed -i 's/clickfinger_behavior = true/# clickfinger_behavior = true/' "$INPUT"
+ok "input.conf"
 
 # ── bindings.conf ─────────────────────────────────────────────────────────────
 log "Patching bindings.conf"
@@ -35,6 +42,7 @@ sed -i '/SUPER SHIFT, P, Google Photos/d' "$BINDINGS"
 
 sed -i 's|SUPER SHIFT ALT, A, Grok, exec, omarchy-launch-webapp "https://grok.com"|SUPER SHIFT ALT, A, Gemini, exec, omarchy-launch-webapp "https://gemini.google.com/"|' "$BINDINGS"
 sed -i 's/SUPER SHIFT ALT, G, WhatsApp/SUPER SHIFT, W, WhatsApp/' "$BINDINGS"
+ok "bindings.conf"
 
 # ── webapps ──────────────────────────────────────────────────────────────────
 log "Setting up webapps"
@@ -46,6 +54,7 @@ omarchy-webapp-remove "HEY" "Basecamp" "Google Photos" "Google Contacts" "Google
 omarchy-webapp-install "Netflix"     https://netflix.com      "https://www.google.com/s2/favicons?domain=netflix.com&sz=128"
 omarchy-webapp-install "Notion"      https://notion.so        "https://www.google.com/s2/favicons?domain=notion.so&sz=128"
 omarchy-webapp-install "Prime Video" https://primevideo.com   "https://www.google.com/s2/favicons?domain=primevideo.com&sz=128"
+ok "webapps"
 
 # ── browsers ─────────────────────────────────────────────────────────────────
 # omarchy-install-browser handles aur install + theme sync + policy setup
@@ -55,18 +64,22 @@ omarchy-pkg-drop chromium 2>/dev/null || true
 omarchy-install-browser chrome
 omarchy-install-browser brave
 omarchy-default-browser chrome
+ok "browsers"
 
 # ── vscode ────────────────────────────────────────────────────────────────────
 log "Installing VS Code"
 omarchy-install-vscode
+ok "vscode"
 
 # ── monitors.conf ─────────────────────────────────────────────────────────────
 # external on the left, laptop on the right
 # positions are in logical pixels (so eDP-1 starts at 1920, not 1920/1.5)
-log "Writing monitors.conf"
 cat > "$HYPR/monitors.conf" << 'MONITORS'
 monitor = HDMI-A-1, 1920x1080@240, 0x0,    1
 monitor = eDP-1,    1920x1080@144, 1920x0, 1.5
 MONITORS
 
-log "done — restart hyprland to apply changes"
+ok "monitors.conf"
+
+hyprctl reload
+echo -e "\n${BOLD}${GRN}all done${RST}"
